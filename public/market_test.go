@@ -1,0 +1,138 @@
+package public
+
+import (
+	"log"
+	"testing"
+	"time"
+)
+
+const baseUrl = "https://api.backpack.exchange/"
+
+var bpbc = NewBackpackPublicClient(baseUrl)
+
+func TestBackpackPublicClient_GetMarkets(t *testing.T) {
+	markets, err := bpbc.GetMarkets()
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	log.Println(len(markets))
+	log.Printf("%+v\n", markets[0].Filters)
+
+}
+
+func TestBackpackPublicClient_GetMarket(t *testing.T) {
+	symbol := "SOL_USDC_PERP"
+	market, err := bpbc.GetMarket(symbol)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	if market.Symbol != symbol {
+		t.Fail()
+	}
+	if market.MarketType != "PERP" {
+		t.Fail()
+	}
+	log.Printf("%+v\n", market.Filters)
+}
+
+func TestBackpackPublicClient_GetTicker(t *testing.T) {
+	symbol := "BTC_USDC_PERP"
+	ticker, err := bpbc.GetTicker(symbol, "1w")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	if ticker.Symbol != symbol {
+		t.Fail()
+	}
+}
+
+func TestBackpackPublicClient_GetTickers(t *testing.T) {
+	tickers, err := bpbc.GetTickers("1d")
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	//if len(tickers) > 50 {
+	//	return
+	//
+	//}
+	log.Println(len(tickers))
+	for _, ticker := range tickers {
+		log.Printf("%+v\n", ticker)
+	}
+}
+
+func TestBackpackPublicClient_GetDepth(t *testing.T) {
+	symbol := "SOL_USDC"
+	depth, err := bpbc.GetDepth(symbol)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	log.Printf("%+v\n", depth)
+	log.Printf("Asks: %d Bids %d\n", len(depth.Asks), len(depth.Bids))
+}
+
+func TestBackpackPublicClient_GetKline(t *testing.T) {
+	symbol := "BTC_USDC"
+	to := time.Now()
+	from := to.AddDate(-1, 0, 0)
+	kline, err := bpbc.GetKline(symbol, "1d", from.Unix(), to.Unix())
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	log.Println(len(kline))
+
+}
+
+func TestBackpackPublicClient_GetAllMarketPrices(t *testing.T) {
+	symbol := "BTC_USDC_PERP"
+	prices, err := bpbc.GetAllMarkPrices(symbol)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	log.Printf("%+v\n", prices)
+	prices, err = bpbc.GetAllMarkPrices("")
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	log.Println(len(prices))
+}
+
+func TestBackpackPublicClient_GetOpenInterest(t *testing.T) {
+	symbol := "BTC_USDC_PERP"
+	interest, err := bpbc.GetOpenInterest(symbol)
+	if err != nil {
+		t.Fatal(err)
+		return
+
+	}
+	log.Printf("%+v\n", interest)
+	interest, err = bpbc.GetOpenInterest("")
+	if err != nil {
+		t.Fatal(err)
+		return
+
+	}
+	log.Printf("%+v\n", len(interest))
+}
+
+func TestBackpackPublicClient_GetFundingIntervalRates(t *testing.T) {
+	symbol := "BTC_USDC_PERP"
+	rates, err := bpbc.GetFundingIntervalRates(symbol, 100, 0)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	for _, rate := range rates {
+		log.Printf("%+v\n", rate)
+	}
+	//log.Printf("%+v\n", rates)
+
+}
