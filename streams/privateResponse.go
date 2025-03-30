@@ -1,4 +1,4 @@
-package streams
+package stream
 
 // OrderEvent represents a trading order event with all associated data
 type OrderEvent struct {

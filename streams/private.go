@@ -1,4 +1,4 @@
-package streams
+package stream
 
 import (
 	"crypto/ed25519"
