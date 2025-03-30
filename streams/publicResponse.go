@@ -1,4 +1,4 @@
-package main
+package streams
 
 // BookTickerEvent represents a book ticker update with best bid and ask prices
 type BookTickerEvent struct {
