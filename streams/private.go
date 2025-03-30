@@ -61,21 +61,48 @@ func (bpc *BackpackWebsocketClient) generateED25519Signature(instruction string)
 	return base64.StdEncoding.EncodeToString(signature)
 }
 
-func (bpc *BackpackWebsocketClient) SubscribeOrderUpdate(symbol string, done chan struct{}, result chan []byte) {
+func (bpc *BackpackWebsocketClient) OrderUpdate(symbol string, done chan struct{}, result chan []byte) (*websocket.Conn, error) {
 	stream := "account.orderUpdate"
 	if symbol != "" {
 		stream = stream + "." + symbol
 	}
-	bpc.Subscribe([]string{stream}, true, done, result)
+	return bpc.Subscribe([]string{stream}, true, done, result)
+}
+func (bpc *BackpackWebsocketClient) PositionUpdate(symbol string, done chan struct{}, result chan []byte) (*websocket.Conn, error) {
+	stream := "account.positionUpdate"
+	if symbol != "" {
+		stream = stream + "." + symbol
+	}
+	return bpc.Subscribe([]string{stream}, true, done, result)
+}
+
+func (bpc *BackpackWebsocketClient) RfqUpdate(symbol string, done chan struct{}, result chan []byte) (*websocket.Conn, error) {
+	stream := "account.rfqUpdate"
+	if symbol != "" {
+		stream = stream + "." + symbol
+	}
+	return bpc.Subscribe([]string{stream}, true, done, result)
+}
+
+func (bpc *BackpackWebsocketClient) Unsubscribe(c *websocket.Conn, streams []string) {
+	defer c.Close()
+	unsub := SubscriptionRequest{
+		Method: "UNSUBSCRIBE",
+		Params: streams,
+	}
+	err := c.WriteJSON(unsub)
+	if err != nil {
+		log.Println("write unsubscription:", err)
+	}
+	log.Printf("Unsubscribe : %v", streams)
 }
 
 // 连接并订阅WebSocket
-func (bpc *BackpackWebsocketClient) Subscribe(streams []string, isPrivate bool, done chan struct{}, result chan []byte) {
+func (bpc *BackpackWebsocketClient) Subscribe(streams []string, isPrivate bool, done chan struct{}, result chan []byte) (*websocket.Conn, error) {
 	c, _, err := websocket.DefaultDialer.Dial(bpc.wsURL, nil)
 	if err != nil {
 		log.Println("dial:", err)
-		c.Close()
-		panic(err)
+		return nil, err
 	}
 	// 建立WebSocket连接
 	subReq := SubscriptionRequest{
@@ -106,7 +133,7 @@ func (bpc *BackpackWebsocketClient) Subscribe(streams []string, isPrivate bool, 
 		log.Println("write subscription:", err)
 		c.Close()
 		time.Sleep(5 * time.Second)
-		return
+		return nil, err
 	}
 	log.Printf("Subscribed to: %v", streams)
 
@@ -152,13 +179,11 @@ func (bpc *BackpackWebsocketClient) Subscribe(streams []string, isPrivate bool, 
 					log.Println("Error sending close message:", err)
 				}
 				time.Sleep(time.Second)
-				c.Close()
 				return
 
 			case err := <-readErrCh:
 				// 读取错误
 				log.Println("WebSocket read error:", err)
-				c.Close()
 				return
 
 			case msg := <-readCh:
@@ -167,6 +192,7 @@ func (bpc *BackpackWebsocketClient) Subscribe(streams []string, isPrivate bool, 
 			}
 		}
 	}()
+	return c, nil
 
 }
 
@@ -190,7 +216,11 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	bpc.SubscribeOrderUpdate("", done, result)
+	conn, err := bpc.OrderUpdate("", done, result)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
 	for {
 		select {
 		case <-interrupt:
@@ -203,5 +233,4 @@ func main() {
 		}
 
 	}
-
 }
