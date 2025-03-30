@@ -56,52 +56,50 @@ type PositionEvent struct {
 	EngineTimestamp     int64   `json:"T"` // Engine timestamp in microseconds
 }
 
-package trading
-
 // RFQActiveEvent represents an active RFQ event
 type RFQActiveEvent struct {
-	EventType        string `json:"e"`  // Event type
-	EventTime        int64  `json:"E"`  // Event time in microseconds
-	RFQID            int64  `json:"R"`  // RFQ ID
-	Symbol           string `json:"s"`  // Symbol
-	Quantity         string `json:"q"`  // Quantity
-	SubmissionTime   int64  `json:"w"`  // Submission time in milliseconds
-	ExpiryTime       int64  `json:"W"`  // Expiry time in milliseconds
-	RFQStatus        string `json:"X"`  // RFQ status
-	EngineTimestamp  int64  `json:"T"`  // Engine timestamp in microseconds
+	EventType       string `json:"e"` // Event type
+	EventTime       int64  `json:"E"` // Event time in microseconds
+	RFQID           int64  `json:"R"` // RFQ ID
+	Symbol          string `json:"s"` // Symbol
+	Quantity        string `json:"q"` // Quantity
+	SubmissionTime  int64  `json:"w"` // Submission time in milliseconds
+	ExpiryTime      int64  `json:"W"` // Expiry time in milliseconds
+	RFQStatus       string `json:"X"` // RFQ status
+	EngineTimestamp int64  `json:"T"` // Engine timestamp in microseconds
 }
 
 // QuoteAcceptedEvent represents a quote accepted event
 type QuoteAcceptedEvent struct {
-	EventType        string `json:"e"`  // Event type
-	EventTime        int64  `json:"E"`  // Event time in microseconds
-	RFQID            int64  `json:"R"`  // RFQ ID
-	QuoteID          int64  `json:"Q"`  // Quote ID
-	ClientQuoteID    string `json:"C"`  // Client Quote ID (optional)
-	QuoteStatus      string `json:"X"`  // Quote status
-	EngineTimestamp  int64  `json:"T"`  // Engine timestamp in microseconds
+	EventType       string `json:"e"` // Event type
+	EventTime       int64  `json:"E"` // Event time in microseconds
+	RFQID           int64  `json:"R"` // RFQ ID
+	QuoteID         int64  `json:"Q"` // Quote ID
+	ClientQuoteID   string `json:"C"` // Client Quote ID (optional)
+	QuoteStatus     string `json:"X"` // Quote status
+	EngineTimestamp int64  `json:"T"` // Engine timestamp in microseconds
 }
 
 // QuoteCancelledEvent represents a quote cancelled event
 type QuoteCancelledEvent struct {
-	EventType        string `json:"e"`  // Event type
-	EventTime        int64  `json:"E"`  // Event time in microseconds
-	RFQID            int64  `json:"R"`  // RFQ ID
-	QuoteID          int64  `json:"Q"`  // Quote ID
-	ClientQuoteID    string `json:"C"`  // Client Quote ID (optional)
-	QuoteStatus      string `json:"X"`  // Quote status
-	EngineTimestamp  int64  `json:"T"`  // Engine timestamp in microseconds
+	EventType       string `json:"e"` // Event type
+	EventTime       int64  `json:"E"` // Event time in microseconds
+	RFQID           int64  `json:"R"` // RFQ ID
+	QuoteID         int64  `json:"Q"` // Quote ID
+	ClientQuoteID   string `json:"C"` // Client Quote ID (optional)
+	QuoteStatus     string `json:"X"` // Quote status
+	EngineTimestamp int64  `json:"T"` // Engine timestamp in microseconds
 }
 
 // RFQFilledEvent represents an RFQ filled event
 type RFQFilledEvent struct {
-	EventType        string `json:"e"`  // Event type
-	EventTime        int64  `json:"E"`  // Event time in microseconds
-	RFQID            int64  `json:"R"`  // RFQ ID
-	QuoteID          int64  `json:"Q"`  // Quote ID
-	ClientQuoteID    string `json:"C"`  // Client Quote ID (optional)
-	Side             string `json:"S"`  // RFQ side (Bid or Ask)
-	FillPrice        string `json:"p"`  // Fill price
-	QuoteStatus      string `json:"X"`  // Quote status
-	EngineTimestamp  int64  `json:"T"`  // Engine timestamp in microseconds
+	EventType       string `json:"e"` // Event type
+	EventTime       int64  `json:"E"` // Event time in microseconds
+	RFQID           int64  `json:"R"` // RFQ ID
+	QuoteID         int64  `json:"Q"` // Quote ID
+	ClientQuoteID   string `json:"C"` // Client Quote ID (optional)
+	Side            string `json:"S"` // RFQ side (Bid or Ask)
+	FillPrice       string `json:"p"` // Fill price
+	QuoteStatus     string `json:"X"` // Quote status
+	EngineTimestamp int64  `json:"T"` // Engine timestamp in microseconds
 }
