@@ -1,5 +1,20 @@
 package streams
 
+import "encoding/json"
+
+// EventHeader represents the common header fields for all event types
+// It can be used to determine the specific event type before unmarshalling
+// the complete message into the appropriate struct
+type EventHeader struct {
+	EventType string `json:"e"` // Event type
+	EventTime int64  `json:"E"` // Event time in microseconds
+}
+
+type StreamMessage struct {
+	Data   json.RawMessage `json:"data"`
+	Stream string          `json:"stream"`
+}
+
 // BookTickerEvent represents a book ticker update with best bid and ask prices
 type BookTickerEvent struct {
 	EventType       string `json:"e"` // Event type
@@ -9,7 +24,7 @@ type BookTickerEvent struct {
 	AskQuantity     string `json:"A"` // Inside ask quantity
 	BidPrice        string `json:"b"` // Inside bid price
 	BidQuantity     string `json:"B"` // Inside bid quantity
-	UpdateID        string `json:"u"` // Update ID of event
+	UpdateID        uint64 `json:"u"` // Update ID of event
 	EngineTimestamp int64  `json:"T"` // Engine timestamp in microseconds
 }
 

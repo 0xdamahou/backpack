@@ -5,14 +5,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// EventHeader represents the common header fields for all event types
-// It can be used to determine the specific event type before unmarshalling
-// the complete message into the appropriate struct
-type EventHeader struct {
-	EventType string `json:"e"` // Event type
-	EventTime int64  `json:"E"` // Event time in microseconds
-}
-
 // Constants for different event types
 const (
 	EventTypeOrderAccepted  = "orderAccepted"

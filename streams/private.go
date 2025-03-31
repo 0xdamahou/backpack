@@ -14,9 +14,6 @@ import (
 
 const (
 	DefaultWsURL = "wss://ws.backpack.exchange"
-	apiKey       = "" // 替换为你的 API Key
-	apiSecret    = "" // 替换为你的 Private Key
-
 )
 
 type BackpackWebsocketClient struct {
@@ -118,7 +115,7 @@ func (bpc *BackpackWebsocketClient) Subscribe(streams []string, isPrivate bool, 
 		signature := bpc.generateED25519Signature(instruction)
 
 		subReq.Signature = []string{
-			apiKey,
+			bpc.ApiKey,
 			signature,
 			fmt.Sprintf("%d", timestamp),
 			fmt.Sprintf("%d", window),
@@ -203,6 +200,8 @@ func main() {
 	//}
 	done := make(chan struct{})
 	result := make(chan []byte, 20)
+	apiKey := ""
+	apiSecret := ""
 	bpc := NewBackpackWebsocketClient(DefaultWsURL, apiKey, apiSecret)
 
 	//bpc.Subscribe(publicStreams, false, done, result)

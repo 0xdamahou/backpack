@@ -64,6 +64,15 @@ func (r *ExecuteOrderRequest) WithBoolOption(value bool, field **bool) *ExecuteO
 func (r *ExecuteOrderRequest) WithAutoLend(value bool) *ExecuteOrderRequest {
 	return r.WithBoolOption(value, &r.AutoLend)
 }
+func (r *ExecuteOrderRequest) WithAutoLendRedeem(value bool) *ExecuteOrderRequest {
+	return r.WithBoolOption(value, &r.AutoLendRedeem)
+}
+func (r *ExecuteOrderRequest) WithAutoBorrow(value bool) *ExecuteOrderRequest {
+	return r.WithBoolOption(value, &r.AutoBorrow)
+}
+func (r *ExecuteOrderRequest) WithAutoBorrowRepay(value bool) *ExecuteOrderRequest {
+	return r.WithBoolOption(value, &r.AutoBorrowRepay)
+}
 func (r *ExecuteOrderRequest) WithReduceOnly(value bool) *ExecuteOrderRequest {
 	return r.WithBoolOption(value, &r.ReduceOnly)
 }

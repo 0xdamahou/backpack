@@ -10,12 +10,16 @@ import (
 	"net/http"
 )
 
+const (
+	baseUrl = "https://api.backpack.exchange/"
+)
+
 type BackpackPublicClient struct {
 	BaseUrl string
 	Client  *http.Client
 }
 
-func NewBackpackPublicClient(baseUrl string) *BackpackPublicClient {
+func NewBackpackPublicClient() *BackpackPublicClient {
 	return &BackpackPublicClient{BaseUrl: baseUrl, Client: &http.Client{}}
 }
 func (bbc *BackpackPublicClient) DoGet(endpoint string, query string, result interface{}) error {

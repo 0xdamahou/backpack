@@ -1,5 +1,10 @@
 package public
 
+import (
+	"math"
+	"strconv"
+)
+
 // MarketSymbol 表示交易对的完整信息
 type MarketSymbol struct {
 	Symbol            string   `json:"symbol"`
@@ -79,6 +84,104 @@ type Depth struct {
 	Bids         [][]string `json:"bids"`         // 买单列表，每个元素是 [价格, 数量]
 	LastUpdateID string     `json:"lastUpdateId"` // 最后更新 ID
 	Timestamp    int64      `json:"timestamp"`    // 时间戳
+}
+
+// GetBestPrices 返回最低卖价和最高买价
+func (depth *Depth) GetBestPrices() (bestAskPrice, bestBidPrice float64) {
+	// 初始化最低卖价为一个非常大的数，确保任何实际卖价都会小于它
+	bestAskPrice = math.MaxFloat64
+	// 初始化最高买价为0
+	bestBidPrice = 0
+
+	// 查找最低卖价
+	for _, ask := range depth.Asks {
+		if len(ask) >= 1 {
+			// 将价格字符串转换为浮点数
+			price, err := strconv.ParseFloat(ask[0], 64)
+			if err != nil {
+				continue // 忽略无法解析的价格
+			}
+
+			// 更新最低卖价
+			if price < bestAskPrice {
+				bestAskPrice = price
+			}
+		}
+	}
+
+	// 查找最高买价
+	for _, bid := range depth.Bids {
+		if len(bid) >= 1 {
+			// 将价格字符串转换为浮点数
+			price, err := strconv.ParseFloat(bid[0], 64)
+			if err != nil {
+				continue // 忽略无法解析的价格
+			}
+
+			// 更新最高买价
+			if price > bestBidPrice {
+				bestBidPrice = price
+			}
+		}
+	}
+
+	// 如果没有找到有效的卖价，返回0
+	if bestAskPrice == math.MaxFloat64 {
+		bestAskPrice = 0
+	}
+
+	return bestAskPrice, bestBidPrice
+}
+
+// GetBestPricesWithVolume 返回最低卖价和最高买价，并且确保这些价格对应的数量不小于指定的最小数量
+func (depth *Depth) GetBestPricesWithVolume(minVolume float64) (bestAskPrice, bestBidPrice float64) {
+	// 初始化最低卖价为一个非常大的数，确保任何实际卖价都会小于它
+	bestAskPrice = math.MaxFloat64
+	// 初始化最高买价为0
+	bestBidPrice = 0
+
+	// 查找最低卖价（数量满足要求）
+	for _, ask := range depth.Asks {
+		if len(ask) >= 2 {
+			// 将价格和数量字符串转换为浮点数
+			price, err1 := strconv.ParseFloat(ask[0], 64)
+			volume, err2 := strconv.ParseFloat(ask[1], 64)
+
+			if err1 != nil || err2 != nil {
+				continue // 忽略无法解析的数据
+			}
+
+			// 只有当数量满足要求时才考虑此价格
+			if volume >= minVolume && price < bestAskPrice {
+				bestAskPrice = price
+			}
+		}
+	}
+
+	// 查找最高买价（数量满足要求）
+	for _, bid := range depth.Bids {
+		if len(bid) >= 2 {
+			// 将价格和数量字符串转换为浮点数
+			price, err1 := strconv.ParseFloat(bid[0], 64)
+			volume, err2 := strconv.ParseFloat(bid[1], 64)
+
+			if err1 != nil || err2 != nil {
+				continue // 忽略无法解析的数据
+			}
+
+			// 只有当数量满足要求时才考虑此价格
+			if volume >= minVolume && price > bestBidPrice {
+				bestBidPrice = price
+			}
+		}
+	}
+
+	// 如果没有找到有效的卖价，返回0
+	if bestAskPrice == math.MaxFloat64 {
+		bestAskPrice = 0
+	}
+
+	return bestAskPrice, bestBidPrice
 }
 
 type Kline struct {

@@ -6,9 +6,7 @@ import (
 	"time"
 )
 
-const baseUrl = "https://api.backpack.exchange/"
-
-var bpbc = NewBackpackPublicClient(baseUrl)
+var bpbc = NewBackpackPublicClient()
 
 func TestBackpackPublicClient_GetMarkets(t *testing.T) {
 	markets, err := bpbc.GetMarkets()
@@ -66,14 +64,14 @@ func TestBackpackPublicClient_GetTickers(t *testing.T) {
 }
 
 func TestBackpackPublicClient_GetDepth(t *testing.T) {
-	symbol := "SOL_USDC"
+	symbol := "USDT_USDC"
 	depth, err := bpbc.GetDepth(symbol)
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
 	log.Printf("%+v\n", depth)
-	log.Printf("Asks: %d Bids %d\n", len(depth.Asks), len(depth.Bids))
+	log.Printf("Asks: %+v Bids %+v\n", depth.Asks[0], depth.Bids[len(depth.Bids)-1])
 }
 
 func TestBackpackPublicClient_GetKline(t *testing.T) {
