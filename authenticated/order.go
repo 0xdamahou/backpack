@@ -51,11 +51,20 @@ const (
 )
 
 // MarketType 定义市场类型（用于 GetOpenOrders）
-
 func (c *BackpackClient) LimitOrder(symbol string, side OrderSide, quantity string, price string) (OrderExecuteResponse, error) {
 	or := NewExecuteOrderRequest(string(OrderTypeLimit), string(side), symbol)
 	or.WithPrice(price).WithQuantity(quantity)
 	return c.ExecuteOrder(or)
+}
+func (c *BackpackClient) MarginLimitOrder(symbol string, side OrderSide, quantity string, price string) (OrderExecuteResponse, error) {
+	oor := NewExecuteOrderRequest(string(OrderTypeLimit), string(side), symbol)
+	oor.WithPrice(price)
+	oor.WithQuantity(quantity)
+	oor.WithAutoLend(true)
+	oor.WithAutoBorrow(true)
+	oor.WithAutoLendRedeem(true)
+	oor.WithAutoBorrowRepay(true)
+	return c.ExecuteOrder(oor)
 }
 func (c *BackpackClient) MarketOrder(symbol string, side OrderSide, quantity string) (OrderExecuteResponse, error) {
 	or := NewExecuteOrderRequest(string(OrderTypeMarket), string(side), symbol)

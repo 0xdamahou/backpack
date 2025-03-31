@@ -2,6 +2,7 @@ package public
 
 import (
 	"log"
+	"strings"
 	"testing"
 	"time"
 )
@@ -14,8 +15,17 @@ func TestBackpackPublicClient_GetMarkets(t *testing.T) {
 		t.Fatal(err)
 		return
 	}
-	log.Println(len(markets))
-	log.Printf("%+v\n", markets[0].Filters)
+	//log.Println(len(markets))
+	mks := make([]MarketSymbol, 0)
+	for _, market := range markets {
+		if strings.HasSuffix(market.Symbol, "PERP") {
+			mks = append(mks, market)
+		}
+	}
+	log.Println(len(mks))
+	for _, mk := range mks {
+		log.Printf("%+v", mk)
+	}
 
 }
 
