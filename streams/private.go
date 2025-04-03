@@ -3,7 +3,6 @@ package streams
 import (
 	"crypto/ed25519"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
@@ -96,64 +95,66 @@ func (bpc *BackpackWebsocketClient) Unsubscribe(c *websocket.Conn, streams []str
 
 // 连接并订阅WebSocket
 func (bpc *BackpackWebsocketClient) Subscribe(streams []string, isPrivate bool, done chan struct{}, result chan []byte) (*websocket.Conn, error) {
-	c, _, err := websocket.DefaultDialer.Dial(bpc.wsURL, nil)
-	if err != nil {
-		log.Println("dial:", err)
-		return nil, err
-	}
-	// 建立WebSocket连接
-	subReq := SubscriptionRequest{
-		Method: "SUBSCRIBE",
-		Params: streams,
-	}
-
-	if isPrivate {
-		// 私有订阅需要签名
-		timestamp := time.Now().UnixMilli()
-		window := int64(5000)
-		instruction := fmt.Sprintf("instruction=subscribe&timestamp=%d&window=%d", timestamp, window)
-		signature := bpc.generateED25519Signature(instruction)
-
-		subReq.Signature = []string{
-			bpc.ApiKey,
-			signature,
-			fmt.Sprintf("%d", timestamp),
-			fmt.Sprintf("%d", window),
+	connect := func() (*websocket.Conn, error) {
+		conn, _, err := websocket.DefaultDialer.Dial(bpc.wsURL, nil)
+		if err != nil {
+			log.Printf("dial: %v", err)
+			return nil, err
 		}
-	}
-	marshal, err := json.Marshal(subReq)
 
-	log.Printf("%+v %+v\n", string(marshal), err)
-	// 发送订阅请求
-	err = c.WriteJSON(subReq)
+		subReq := SubscriptionRequest{
+			Method: "SUBSCRIBE",
+			Params: streams,
+		}
+
+		if isPrivate {
+			timestamp := time.Now().UnixMilli()
+			window := int64(5000)
+			instruction := fmt.Sprintf("instruction=subscribe&timestamp=%d&window=%d", timestamp, window)
+			signature := bpc.generateED25519Signature(instruction)
+			subReq.Signature = []string{
+				bpc.ApiKey,
+				signature,
+				fmt.Sprintf("%d", timestamp),
+				fmt.Sprintf("%d", window),
+			}
+		}
+
+		if err := conn.WriteJSON(subReq); err != nil {
+			log.Printf("write subscription: %v", err)
+			conn.Close()
+			return nil, err
+		}
+		log.Printf("Subscribed to: %v", streams)
+
+		conn.SetPingHandler(func(appData string) error {
+			return conn.WriteMessage(websocket.PongMessage, nil)
+		})
+		conn.SetCloseHandler(func(code int, text string) error {
+			log.Printf("Received close frame: code=%d, text=%s", code, text)
+			return nil
+		})
+
+		return conn, nil
+	}
+
+	conn, err := connect()
 	if err != nil {
-		log.Println("write subscription:", err)
-		c.Close()
-		time.Sleep(5 * time.Second)
 		return nil, err
 	}
-	log.Printf("Subscribed to: %v", streams)
 
-	// 设置Ping处理器以响应服务器的Ping
-	c.SetPingHandler(func(appData string) error {
-		//log.Println("Received ping from server, sending pong")
-		return c.WriteMessage(websocket.PongMessage, nil)
-	})
+	const maxReconnectAttempts = 5
+	const initialBackoff = 1 * time.Second
 
-	// 设置Close处理器
-	c.SetCloseHandler(func(code int, text string) error {
-		log.Printf("Received close frame: code=%d, text=%s, reconnecting in 5 seconds...", code, text)
-		return nil
-	})
-
-	// 处理接收消息
 	go func() {
-		// 创建一个通道用于传递读取结果
+		defer close(result) // 确保退出时关闭 result 通道
+		reconnectAttempts := 0
+		backoff := initialBackoff
+
 		readCh := make(chan []byte)
 		readErrCh := make(chan error)
 
-		// 完全分离读取操作
-		go func() {
+		readMessages := func(c *websocket.Conn) {
 			for {
 				_, message, err := c.ReadMessage()
 				if err != nil {
@@ -162,35 +163,52 @@ func (bpc *BackpackWebsocketClient) Subscribe(streams []string, isPrivate bool, 
 				}
 				readCh <- message
 			}
-		}()
+		}
 
-		// 主循环监听多个通道
+		go readMessages(conn)
+
 		for {
 			select {
 			case <-done:
-				// 收到关闭信号
 				log.Println("Received done signal, closing connection")
-				err := c.WriteMessage(websocket.CloseMessage,
-					websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-				if err != nil {
-					log.Println("Error sending close message:", err)
-				}
-				time.Sleep(time.Second)
+				conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				conn.Close()
 				return
 
 			case err := <-readErrCh:
-				// 读取错误
-				log.Println("WebSocket read error:", err)
-				return
+				log.Printf("WebSocket read error: %v, attempting to reconnect...", err)
+				conn.Close()
+
+				if reconnectAttempts >= maxReconnectAttempts {
+					log.Printf("Max reconnection attempts (%d) reached, giving up", maxReconnectAttempts)
+					return
+				}
+
+				reconnectAttempts++
+				log.Printf("Reconnection attempt %d/%d in %v", reconnectAttempts, maxReconnectAttempts, backoff)
+				time.Sleep(backoff)
+				backoff *= 2
+				if backoff > 30*time.Second {
+					backoff = 30 * time.Second
+				}
+
+				newConn, connErr := connect()
+				if connErr != nil {
+					log.Printf("Reconnection failed: %v", connErr)
+					continue
+				}
+				conn = newConn
+				reconnectAttempts = 0
+				backoff = initialBackoff
+				go readMessages(conn)
 
 			case msg := <-readCh:
-				// 成功读取消息
 				result <- msg
 			}
 		}
 	}()
-	return c, nil
 
+	return conn, nil
 }
 
 func main() {
