@@ -1,6 +1,8 @@
 package streams
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 // EventHeader represents the common header fields for all event types
 // It can be used to determine the specific event type before unmarshalling

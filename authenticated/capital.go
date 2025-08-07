@@ -1,8 +1,9 @@
 package authenticated
 
 import (
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
+	json "github.com/bytedance/sonic"
 )
 
 // GetBalances  return map[SOL:map[available:0.800001 locked:0 staked:0]]

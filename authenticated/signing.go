@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"io"
+
+	//"encoding/json"
+	"fmt"
+	json "github.com/bytedance/sonic"
 	"log"
 	"net/http"
 	"sort"
@@ -119,8 +121,8 @@ func (c *BackpackClient) DoRequest(method, endpoint string, instruction string, 
 
 	if len(params) > 0 {
 		req.URL.RawQuery = params
-		//log.Println(req.URL.RawQuery)
 	}
+	//log.Println(req.URL.RawQuery)
 
 	window := req.Header.Get("X-Window")
 	if window == "" {
@@ -139,7 +141,7 @@ func (c *BackpackClient) DoRequest(method, endpoint string, instruction string, 
 	req.Header.Set("X-Signature", signature)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.Client.Do(req)
+	resp, err := c.Client.GetClient().Do(req)
 	if err != nil {
 		log.Println(err)
 		return err

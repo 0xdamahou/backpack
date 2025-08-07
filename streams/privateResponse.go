@@ -38,22 +38,22 @@ type OrderEvent struct {
 
 // PositionEvent represents a trading position event with all associated data
 type PositionEvent struct {
-	EventType           string  `json:"e"` // Event type
-	EventTime           int64   `json:"E"` // Event time in microseconds
-	Symbol              string  `json:"s"` // Symbol
-	BreakEventPrice     float64 `json:"b"` // Break event price
-	EntryPrice          float64 `json:"B"` // Entry price
-	LiquidationPrice    float64 `json:"l"` // Estimated liquidation price
-	InitialMarginFrac   float64 `json:"f"` // Initial margin fraction
-	MarkPrice           float64 `json:"M"` // Mark price
-	MaintenanceMargin   float64 `json:"m"` // Maintenance margin fraction
-	NetQuantity         float64 `json:"q"` // Net quantity
-	NetExposureQty      float64 `json:"Q"` // Net exposure quantity
-	NetExposureNotional float64 `json:"n"` // Net exposure notional
-	PositionID          string  `json:"i"` // Position ID
-	PnLRealized         string  `json:"p"` // PnL realized
-	PnLUnrealized       string  `json:"P"` // PnL unrealized
-	EngineTimestamp     int64   `json:"T"` // Engine timestamp in microseconds
+	EventType           string `json:"e"` // Event type
+	EventTime           int64  `json:"E"` // Event time in microseconds
+	Symbol              string `json:"s"` // Symbol
+	BreakEventPrice     string `json:"b"` // Break event price
+	EntryPrice          string `json:"B"` // Entry price
+	LiquidationPrice    string `json:"l"` // Estimated liquidation price
+	InitialMarginFrac   string `json:"f"` // Initial margin fraction
+	MarkPrice           string `json:"M"` // Mark price
+	MaintenanceMargin   string `json:"m"` // Maintenance margin fraction
+	NetQuantity         string `json:"q"` // Net quantity
+	NetExposureQty      string `json:"Q"` // Net exposure quantity
+	NetExposureNotional string `json:"n"` // Net exposure notional
+	PositionID          string `json:"i"` // Position ID
+	PnLRealized         string `json:"p"` // PnL realized
+	PnLUnrealized       string `json:"P"` // PnL unrealized
+	EngineTimestamp     int64  `json:"T"` // Engine timestamp in microseconds
 }
 
 // RFQActiveEvent represents an active RFQ event

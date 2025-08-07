@@ -10,10 +10,25 @@ import (
 type BackpackClient struct {
 	APIKey     string
 	PrivateKey ed25519.PrivateKey
-	Client     *http.Client
+	Client     ClientProvider
+}
+type ClientProvider interface {
+	GetClient() *http.Client
+}
+
+type DefaultClientProvider struct {
+}
+
+func (c *DefaultClientProvider) GetClient() *http.Client {
+	return http.DefaultClient
 }
 
 func NewBackpackClient(apiKey, privateKey string) (*BackpackClient, error) {
+	dcp := &DefaultClientProvider{}
+	return NewBackpackClientEx(apiKey, privateKey, dcp)
+}
+
+func NewBackpackClientEx(apiKey, privateKey string, client ClientProvider) (*BackpackClient, error) {
 	seed, err := base64.StdEncoding.DecodeString(privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("decode private key failed: %v", err)
@@ -26,6 +41,6 @@ func NewBackpackClient(apiKey, privateKey string) (*BackpackClient, error) {
 	return &BackpackClient{
 		APIKey:     apiKey,
 		PrivateKey: privKey,
-		Client:     &http.Client{},
+		Client:     client,
 	}, nil
 }

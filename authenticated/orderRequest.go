@@ -56,6 +56,7 @@ func (r *ExecuteOrderRequest) WithMarketType(marketType string) *ExecuteOrderReq
 	r.MarketType = &marketType
 	return r
 }
+
 func (r *ExecuteOrderRequest) WithBoolOption(value bool, field **bool) *ExecuteOrderRequest {
 	*field = &value
 	return r
@@ -63,6 +64,9 @@ func (r *ExecuteOrderRequest) WithBoolOption(value bool, field **bool) *ExecuteO
 
 func (r *ExecuteOrderRequest) WithAutoLend(value bool) *ExecuteOrderRequest {
 	return r.WithBoolOption(value, &r.AutoLend)
+}
+func (r *ExecuteOrderRequest) WithPostOnly(value bool) *ExecuteOrderRequest {
+	return r.WithBoolOption(value, &r.PostOnly)
 }
 func (r *ExecuteOrderRequest) WithAutoLendRedeem(value bool) *ExecuteOrderRequest {
 	return r.WithBoolOption(value, &r.AutoLendRedeem)

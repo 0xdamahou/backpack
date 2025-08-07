@@ -1,7 +1,8 @@
 package authenticated
 
 import (
-	"encoding/json"
+	//"encoding/json"
+	json "github.com/bytedance/sonic"
 )
 
 // OrderSide 定义订单方向

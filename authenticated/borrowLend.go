@@ -1,7 +1,8 @@
 package authenticated
 
 import (
-	"encoding/json"
+	//"encoding/json"
+	json "github.com/bytedance/sonic"
 )
 
 func (c *BackpackClient) GetBorrowLendPositions() (Positions, error) {

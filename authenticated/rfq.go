@@ -1,6 +1,6 @@
 package authenticated
 
-import "encoding/json"
+import json "github.com/bytedance/sonic"
 
 func (c *BackpackClient) SubmitQuote(rfq *RfqRequest) (RFQQuoteResponse, error) {
 	endPoint := "api/v1/rfq/quote"

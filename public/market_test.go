@@ -2,6 +2,7 @@ package public
 
 import (
 	"log"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -85,15 +86,49 @@ func TestBackpackPublicClient_GetDepth(t *testing.T) {
 }
 
 func TestBackpackPublicClient_GetKline(t *testing.T) {
-	symbol := "BTC_USDC"
+	symbol := "FARTCOIN_USDC_PERP"
 	to := time.Now()
-	from := to.AddDate(-1, 0, 0)
-	kline, err := bpbc.GetKline(symbol, "1d", from.Unix(), to.Unix())
+	from := to.AddDate(-1, -2, -10)
+	klines, err := bpbc.GetKline(symbol, "1d", from.Unix(), to.Unix())
 	if err != nil {
 		t.Fatal(err)
 		return
 	}
-	log.Println(len(kline))
+	log.Println(len(klines))
+	vol := 0.0
+	num := 0.0
+	vol2H := 0.0
+	for i, kline := range klines {
+		//log.Printf("%+v\n", kline)
+		high, e := strconv.ParseFloat(kline.High, 64)
+		if e != nil {
+			continue
+		}
+		low, e := strconv.ParseFloat(kline.Low, 64)
+		if e != nil {
+			continue
+		}
+		vol += 2 * (high - low) / (high + low)
+		num += 1
+		if i > len(klines)-3 {
+			c := 2 * (high - low) / (high + low)
+			if c > vol2H {
+				vol2H = c
+			}
+		}
+	}
+	vol240hAvg := vol / num
+	Weight := 1.0
+	switch {
+	case vol2H > vol240hAvg*1.5:
+		Weight = 2
+	case vol2H < vol240hAvg*0.7:
+		Weight = 0.5
+	default:
+		Weight = 1
+
+	}
+	log.Println(Weight, vol240hAvg, vol2H)
 
 }
 
