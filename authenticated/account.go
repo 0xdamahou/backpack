@@ -1,10 +1,11 @@
 package authenticated
 
 import (
+	"bytes"
 	//"encoding/json"
 	"fmt"
+
 	json "github.com/bytedance/sonic"
-	"log"
 )
 
 func (c *BackpackClient) GetAccount() (AccountSettings, error) {
@@ -24,12 +25,12 @@ func (c *BackpackClient) UpdateAccount(autoBorrowSettlements bool, autoLend bool
 		AutoRepayBorrows:      autoRepayBorrows,
 		LeverageLimit:         leverageLimit,
 	}
-	bs, err := json.Marshal(ac)
+	var buf bytes.Buffer
+	err := json.ConfigDefault.NewEncoder(&buf).Encode(ac)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
-	err = c.DoPatch(endpoint, instruction, bs, nil)
+	err = c.DoPatch(endpoint, instruction, &buf, ac.ToURLQueryString(), nil)
 	return err
 }
 

@@ -2,6 +2,9 @@ package authenticated
 
 import (
 	//"encoding/json"
+
+	"bytes"
+
 	json "github.com/bytedance/sonic"
 )
 
@@ -13,18 +16,28 @@ func (c *BackpackClient) GetBorrowLendPositions() (Positions, error) {
 	return positions, err
 }
 
+type BorrowLendRequest struct {
+	Quantity string `json:"quantity"`
+	Side     string `json:"side"`
+	Symbol   string `json:"symbol"`
+}
+
+func (r *BorrowLendRequest) ToURLQueryString() string {
+	p := NewParams()
+	p.Add("quantity", &r.Quantity)
+	p.Add("side", &r.Side)
+	p.Add("symbol", &r.Symbol)
+	return p.String()
+
+}
 func (c *BackpackClient) ExecuteBorrowLend(symbol string, side string, quantity string) error {
 	endpoint := "api/v1/borrowLend"
 	instruction := "borrowLendExecute"
-	type Request struct {
-		Quantity string `json:"quantity"`
-		Side     string `json:"side"`
-		Symbol   string `json:"symbol"`
+	r := BorrowLendRequest{Quantity: quantity, Side: side, Symbol: symbol}
+	var buf bytes.Buffer
+	err := json.ConfigDefault.NewEncoder(&buf).Encode(r)
+	if err != nil {
+		return err
 	}
-	r := Request{Quantity: quantity, Side: side, Symbol: symbol}
-	bs, e := json.Marshal(r)
-	if e != nil {
-		return e
-	}
-	return c.DoPost(endpoint, instruction, bs, nil)
+	return c.DoPost(endpoint, instruction, &buf, r.ToURLQueryString(), nil)
 }

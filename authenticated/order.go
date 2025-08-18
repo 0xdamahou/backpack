@@ -2,6 +2,12 @@ package authenticated
 
 import (
 	//"encoding/json"
+
+	"bytes"
+
+	"log"
+	"strings"
+
 	json "github.com/bytedance/sonic"
 )
 
@@ -78,13 +84,47 @@ func (c *BackpackClient) ExecuteOrder(order *ExecuteOrderRequest) (OrderExecuteR
 	var resp OrderExecuteResponse
 	instruction := "orderExecute"
 	endPoint := "api/v1/order"
-	jsonBody, err := json.Marshal(order)
+	var buf bytes.Buffer
+	err := json.ConfigDefault.NewEncoder(&buf).Encode(order)
 	if err != nil {
 		return resp, err
 	}
 
 	//log.Printf("Request: %s", string(jsonBody))
-	err = c.DoPost(endPoint, instruction, jsonBody, &resp)
+	//q := Body2Query(jsonBody)
+	err = c.DoPost(endPoint, instruction, &buf, order.ToURLQueryString(), &resp)
+	return resp, err
+}
+
+// ExecuteOrders 批量订单
+func (c *BackpackClient) ExecuteOrders(orders []*ExecuteOrderRequest) ([]OrderExecuteResponse, error) {
+	var resp []OrderExecuteResponse
+	instruction := "orderExecute"
+	endPoint := "api/v1/orders"
+	//jsonBody, err := json.Marshal(orders)
+	//if err != nil {
+	//	return resp, err
+	//}
+
+	var queryBuilder strings.Builder
+	queryBuilder.Grow(256 * len(orders))
+
+	for i, order := range orders {
+		if i > 0 {
+			queryBuilder.WriteString("&instruction=orderExecute&")
+		}
+		queryBuilder.WriteString(order.ToURLQueryString())
+	}
+	q := queryBuilder.String()
+	var buf bytes.Buffer
+	err := json.ConfigDefault.NewEncoder(&buf).Encode(orders)
+	if err != nil {
+		log.Println(err)
+		return resp, err
+	}
+
+	//log.Printf("[%s] %s\n", time.Now().Format("15:04:05.000"), q)
+	err = c.DoPost(endPoint, instruction, &buf, q, &resp)
 	return resp, err
 }
 
@@ -114,10 +154,10 @@ func (c *BackpackClient) CancelOpenOrder(oor *OpenOrderRequest) (OrderResponse, 
 	var resp OrderResponse
 	instruction := "orderCancel"
 	endPoint := "api/v1/order"
-	body, err := json.Marshal(*oor)
-	err = c.DoDelete(endPoint, instruction, body, &resp)
+	var buf bytes.Buffer
+	err := json.ConfigDefault.NewEncoder(&buf).Encode(*oor)
+	err = c.DoDelete(endPoint, instruction, &buf, oor.ToURLQueryString(), &resp)
 	return resp, err
-
 }
 
 // CancelOpenOrders 取消所有未结订单 (/orders/open/cancel)
@@ -125,14 +165,12 @@ func (c *BackpackClient) CancelOpenOrders(symbol string, orderType CancelOrderTy
 	var resp OpenOrdersResponse
 	instruction := "orderCancelAll"
 	endPoint := "api/v1/orders"
-	params := map[string]interface{}{
-		"symbol":    symbol,
-		"orderType": string(orderType),
-	}
-	jsonBody, err := json.Marshal(params)
+	params := NewCancelOrdersRequest(symbol, orderType)
+	var buf bytes.Buffer
+	err := json.ConfigDefault.NewEncoder(&buf).Encode(*params)
 	if err != nil {
 		return resp, err
 	}
-	err = c.DoDelete(endPoint, instruction, jsonBody, &resp)
+	err = c.DoDelete(endPoint, instruction, &buf, params.ToURLQueryString(), &resp)
 	return resp, err
 }

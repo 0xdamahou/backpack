@@ -1,8 +1,11 @@
 package authenticated
 
 import (
+	"bytes"
 	//"encoding/json"
 	"fmt"
+	"log"
+
 	json "github.com/bytedance/sonic"
 )
 
@@ -78,6 +81,21 @@ func (c *BackpackClient) RequestWithdrawal(dr *WithdrawRequest) (WithdrawalResul
 	if err != nil {
 		return result, err
 	}
-	err = c.DoPost(endpoint, instruction, jsonBody, &result)
+
+	q := Body2Query(jsonBody)
+
+	err = c.DoPost(endpoint, instruction, bytes.NewBuffer(jsonBody), q, &result)
 	return result, err
+}
+
+func Body2Query(jsonBody []byte) string {
+	var params map[string]interface{}
+	if jsonBody != nil {
+		err := json.Unmarshal(jsonBody, &params)
+		if err != nil {
+			log.Println(err)
+			return ""
+		}
+	}
+	return MapToQueryString(params)
 }

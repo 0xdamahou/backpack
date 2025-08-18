@@ -8,6 +8,12 @@ func NewExecuteOrderRequest(orderType, side, symbol string) *ExecuteOrderRequest
 	}
 }
 
+func (r *ExecuteOrderRequest) WithMargin() {
+	r.WithAutoLend(true)
+	r.WithAutoBorrow(true)
+	r.WithAutoLendRedeem(true)
+	r.WithAutoBorrowRepay(true)
+}
 func (r *ExecuteOrderRequest) WithQuantity(quantity string) *ExecuteOrderRequest {
 	r.Quantity = &quantity
 	return r
@@ -81,6 +87,101 @@ func (r *ExecuteOrderRequest) WithReduceOnly(value bool) *ExecuteOrderRequest {
 	return r.WithBoolOption(value, &r.ReduceOnly)
 }
 
+func (r *ExecuteOrderRequest) ToURLQueryString() string {
+	p := NewParams()
+
+	// Add fields in alphabetical order, ignoring nil pointers and empty strings
+	if r.AutoBorrow != nil && *r.AutoBorrow {
+		p.AddBoolean("autoBorrow", r.AutoBorrow)
+	}
+
+	if r.AutoBorrowRepay != nil && *r.AutoBorrowRepay {
+		p.AddBoolean("autoBorrowRepay", r.AutoBorrowRepay)
+	}
+
+	if r.AutoLend != nil && *r.AutoLendRedeem {
+		p.AddBoolean("autoLend", r.AutoLend)
+	}
+
+	if r.AutoLendRedeem != nil && *r.AutoLendRedeem {
+		p.AddBoolean("autoLendRedeem", r.AutoLendRedeem)
+	}
+
+	if r.ClientId != nil {
+		p.AddUint32("clientId", r.ClientId)
+	}
+
+	if r.MarketType != nil && *r.MarketType != "" {
+		p.Add("marketType", r.MarketType)
+	}
+
+	// Required field, but check if not empty
+
+	p.Add("orderType", &r.OrderType)
+
+	if r.PostOnly != nil {
+		p.AddBoolean("postOnly", r.PostOnly)
+	}
+
+	if r.Price != nil && *r.Price != "" {
+		p.Add("price", r.Price)
+	}
+
+	if r.Quantity != nil && *r.Quantity != "" {
+		p.Add("quantity", r.Quantity)
+	}
+
+	if r.QuoteQuantity != nil && *r.QuoteQuantity != "" {
+		p.Add("quoteQuantity", r.QuoteQuantity)
+	}
+
+	if r.ReduceOnly != nil && *r.ReduceOnly {
+		p.AddBoolean("reduceOnly", r.ReduceOnly)
+	}
+
+	if r.SelfTradePrevention != nil && *r.SelfTradePrevention != "" {
+		p.Add("selfTradePrevention", r.SelfTradePrevention)
+	}
+
+	// Required field, but check if not empty
+
+	p.Add("side", &r.Side)
+
+	if r.StopLossLimitPrice != nil && *r.StopLossLimitPrice != "" {
+		p.Add("stopLossLimitPrice", r.StopLossLimitPrice)
+	}
+
+	if r.StopLossTriggerPrice != nil && *r.StopLossTriggerPrice != "" {
+		p.Add("stopLossTriggerPrice", r.StopLossTriggerPrice)
+	}
+
+	// Required field, but check if not empty
+
+	p.Add("symbol", &r.Symbol)
+
+	if r.TakeProfitLimitPrice != nil && *r.TakeProfitLimitPrice != "" {
+		p.Add("takeProfitLimitPrice", r.TakeProfitLimitPrice)
+	}
+
+	if r.TakeProfitTriggerPrice != nil && *r.TakeProfitTriggerPrice != "" {
+		p.Add("takeProfitTriggerPrice", r.TakeProfitTriggerPrice)
+	}
+
+	if r.TimeInForce != nil && *r.TimeInForce != "" {
+		p.Add("timeInForce", r.TimeInForce)
+	}
+
+	if r.TriggerPrice != nil && *r.TriggerPrice != "" {
+		p.Add("triggerPrice", r.TriggerPrice)
+	}
+
+	if r.TriggerQuantity != nil && *r.TriggerQuantity != "" {
+		p.Add("triggerQuantity", r.TriggerQuantity)
+	}
+
+	return p.String()
+}
+
 type OpenOrderRequest struct {
 	Symbol string `json:"symbol"` // 交易对
 
@@ -104,6 +205,23 @@ func (r *OpenOrderRequest) ToURLQueryString() string {
 	p := NewParams()
 	p.AddUint32("clientId", r.ClientId)
 	p.Add("orderId", r.OrderId)
+	p.Add("symbol", &r.Symbol)
+	return p.String()
+
+}
+
+type CancelOrdersRequest struct {
+	Symbol    string `json:"symbol"`    // 交易对
+	OrderType string `json:"orderType"` // 交易对
+}
+
+func NewCancelOrdersRequest(symbol string, orderType CancelOrderType) *CancelOrdersRequest {
+	return &CancelOrdersRequest{Symbol: symbol, OrderType: string(orderType)}
+}
+
+func (r *CancelOrdersRequest) ToURLQueryString() string {
+	p := NewParams()
+	p.Add("orderType", &r.OrderType)
 	p.Add("symbol", &r.Symbol)
 	return p.String()
 

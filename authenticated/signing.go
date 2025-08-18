@@ -8,12 +8,13 @@ import (
 
 	//"encoding/json"
 	"fmt"
-	json "github.com/bytedance/sonic"
 	"log"
 	"net/http"
 	"sort"
 	"strings"
 	"time"
+
+	json "github.com/bytedance/sonic"
 )
 
 func init() {
@@ -80,40 +81,25 @@ func MapToQueryString(params map[string]interface{}) string {
 	return queryStr.String()
 }
 
-func (c *BackpackClient) DoPost(endpoint string, instruction string, postBody []byte, result interface{}) error {
-	return c.DoWithBody(POST, endpoint, instruction, postBody, result)
+func (c *BackpackClient) DoPost(endpoint string, instruction string, buffer *bytes.Buffer, q string, result interface{}) error {
+	return c.DoRequest(POST, endpoint, instruction, buffer, q, result)
 }
 
-func (c *BackpackClient) DoDelete(endpoint string, instruction string, postBody []byte, result interface{}) error {
-	return c.DoWithBody(DELETE, endpoint, instruction, postBody, result)
+func (c *BackpackClient) DoDelete(endpoint string, instruction string, buffer *bytes.Buffer, q string, result interface{}) error {
+	return c.DoRequest(DELETE, endpoint, instruction, buffer, q, result)
 }
 
-func (c *BackpackClient) DoPatch(endpoint string, instruction string, postBody []byte, result interface{}) error {
-	return c.DoWithBody(PATCH, endpoint, instruction, postBody, result)
-}
-
-func (c *BackpackClient) DoWithBody(method string, endpoint string, instruction string, postBody []byte, result interface{}) error {
-	var params map[string]interface{}
-	if postBody != nil {
-		err := json.Unmarshal(postBody, &params)
-		if err != nil {
-			return err
-		}
-	}
-	//log.Printf("Body:%s", string(postBody))
-
-	q := MapToQueryString(params)
-	//log.Printf("params:%s", q)
-	return c.DoRequest(method, endpoint, instruction, postBody, q, result)
+func (c *BackpackClient) DoPatch(endpoint string, instruction string, buffer *bytes.Buffer, q string, result interface{}) error {
+	return c.DoRequest(PATCH, endpoint, instruction, buffer, q, result)
 }
 
 func (c *BackpackClient) DoGet(endpoint string, instruction string, params string, result interface{}) error {
 	return c.DoRequest(GET, endpoint, instruction, nil, params, result)
 }
 
-func (c *BackpackClient) DoRequest(method, endpoint string, instruction string, reqBody []byte, params string, result interface{}) error {
+func (c *BackpackClient) DoRequest(method, endpoint string, instruction string, buffer *bytes.Buffer, params string, result interface{}) error {
 	url := baseURL + endpoint
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequest(method, url, buffer)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -141,11 +127,13 @@ func (c *BackpackClient) DoRequest(method, endpoint string, instruction string, 
 	req.Header.Set("X-Signature", signature)
 	req.Header.Set("Content-Type", "application/json")
 
+	//log.Printf("[%s] %s\n", time.Now().Format("15:04:05.000"), "Sending request..")
 	resp, err := c.Client.GetClient().Do(req)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
+	//log.Printf("[%s] %s\n", time.Now().Format("15:04:05.000"), "Receiving..")
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("request failed with status: %s\n", resp.Status)

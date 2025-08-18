@@ -7,6 +7,12 @@ type AccountConfig struct {
 	LeverageLimit         string `json:"leverageLimit"`
 }
 
+func (mo *AccountConfig) ToURLQueryString() string {
+	p := NewParams()
+	p.AddBoolean("autoBorrowSettlements", &mo.AutoBorrowSettlements).AddBoolean("autoLend", &mo.AutoLend).AddBoolean("autoRepayBorrows", &mo.AutoRepayBorrows).Add("leverageLimit", &mo.LeverageLimit)
+	return p.String()
+}
+
 type MaxOrderQuantityRequest struct {
 	// Symbol is the required market symbol to trade.
 	Symbol string `json:"symbol"`
